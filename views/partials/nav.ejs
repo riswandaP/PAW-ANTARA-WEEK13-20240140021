@@ -1,18 +1,100 @@
-<header class="bg-white border-b border-gray-200 py-4 px-6 mb-6">
-  <div class="max-w-5xl mx-auto flex items-center justify-between">
-    <div>
-      <h1 class="text-xl font-bold text-gray-800"><%= storeName %></h1>
-      <p class="text-sm text-gray-500">Belanja & tanya-tanya lewat chat AI</p>
+<header class="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-xs">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16">
+      
+      <!-- Brand Logo -->
+      <div class="flex items-center gap-3">
+        <a href="/" class="flex items-center gap-2 group">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-xl shadow-md group-hover:scale-105 transition-transform">
+            🛒
+          </div>
+          <div>
+            <h1 class="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors"><%= storeName %></h1>
+            <p class="text-xs text-gray-500 font-medium">Smart AI Shop & Order</p>
+          </div>
+        </a>
+      </div>
+
+      <!-- Navigation Links -->
+      <nav class="hidden md:flex items-center gap-1">
+        <a
+          href="/"
+          class="px-3.5 py-2 text-sm rounded-lg font-medium transition-colors <%= active === 'katalog' ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' %>"
+        >
+          🛍️ Katalog & Chat AI
+        </a>
+        <a
+          href="/invoices"
+          class="px-3.5 py-2 text-sm rounded-lg font-medium transition-colors <%= active === 'invoice' ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' %>"
+        >
+          📄 Riwayat Invoice
+        </a>
+
+        <% if (user && user.role === 'admin') { %>
+          <a
+            href="/admin/products"
+            class="px-3.5 py-2 text-sm rounded-lg font-medium transition-colors <%= active === 'admin-products' ? 'bg-indigo-50 text-indigo-700 font-semibold border border-indigo-200' : 'text-indigo-600 hover:bg-indigo-50 font-medium' %>"
+          >
+            ⚙️ Panel Admin (CRUD)
+          </a>
+        <% } %>
+      </nav>
+
+      <!-- User Actions & Cart Trigger -->
+      <div class="flex items-center gap-3">
+        
+        <!-- Cart Drawer Toggle Button -->
+        <button
+          id="cart-toggle-btn"
+          type="button"
+          onclick="toggleCartModal()"
+          class="relative p-2 rounded-xl text-gray-700 hover:bg-gray-100 transition-colors flex items-center gap-1 border border-gray-200"
+          title="Buka Keranjang Belanja"
+        >
+          <span class="text-xl">🧺</span>
+          <span class="hidden sm:inline text-xs font-semibold text-gray-700">Keranjang</span>
+          <span
+            id="cart-badge"
+            class="hidden absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[11px] font-bold px-1.5 py-0.2 rounded-full shadow-sm"
+          >0</span>
+        </button>
+
+        <!-- User Profile / Auth State -->
+        <% if (user) { %>
+          <div class="flex items-center gap-2 pl-2 border-l border-gray-200">
+            <div class="text-right hidden sm:block">
+              <p class="text-xs font-bold text-gray-800"><%= user.username %></p>
+              <span class="inline-block text-[10px] uppercase tracking-wider font-extrabold px-1.5 py-0.2 rounded <%= user.role === 'admin' ? 'bg-indigo-100 text-indigo-700' : 'bg-emerald-100 text-emerald-700' %>">
+                <%= user.role %>
+              </span>
+            </div>
+            <a
+              href="/logout"
+              class="px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 border border-red-200 rounded-lg transition-colors"
+              title="Keluar"
+            >
+              Logout
+            </a>
+          </div>
+        <% } else { %>
+          <div class="flex items-center gap-2 pl-2 border-l border-gray-200">
+            <a
+              href="/login"
+              class="px-3.5 py-1.5 text-xs font-semibold text-gray-700 hover:text-blue-600 hover:bg-gray-50 border border-gray-300 rounded-lg transition-colors"
+            >
+              Masuk
+            </a>
+            <a
+              href="/register"
+              class="px-3.5 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-xs transition-colors"
+            >
+              Daftar
+            </a>
+          </div>
+        <% } %>
+
+      </div>
+
     </div>
-    <nav class="flex gap-2">
-      <a
-        href="/"
-        class="px-3 py-1.5 text-sm rounded-lg font-medium <%= active === 'katalog' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600' %>"
-      >Katalog & Chat</a>
-      <a
-        href="/invoices"
-        class="px-3 py-1.5 text-sm rounded-lg font-medium <%= active === 'invoice' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600' %>"
-      >Invoice</a>
-    </nav>
   </div>
 </header>

@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manajemen Produk (Admin) - <%= storeName %></title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <%- include('../partials/nav', { storeName, active: 'admin-products', user }) %>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    
+    <!-- Top Header & Actions -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+      <div>
+        <div class="flex items-center gap-2">
+          <h2 class="text-2xl font-black text-gray-900">📦 Panel Kelola Produk</h2>
+          <span class="bg-indigo-100 text-indigo-700 text-xs font-extrabold px-2.5 py-0.5 rounded-full border border-indigo-200">
+            Admin Access
+          </span>
+        </div>
+        <p class="text-sm text-gray-500 mt-0.5">Operasi CRUD (Create, Read, Update, Delete) data katalog toko</p>
+      </div>
+
+      <button
+        type="button"
+        onclick="openAddModal()"
+        class="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold px-4 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all text-sm"
+      >
+        <span>+ Tambah Produk Baru</span>
+      </button>
+    </div>
+
+    <!-- Alert Banners -->
+    <% if (error) { %>
+      <div class="bg-rose-50 border border-rose-200 text-rose-700 text-sm rounded-xl px-4 py-3 mb-6 flex items-center gap-2">
+        <span>⚠️</span>
+        <span><%= error %></span>
+      </div>
+    <% } %>
+    <% if (success) { %>
+      <div class="bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm rounded-xl px-4 py-3 mb-6 flex items-center gap-2">
+        <span>✅</span>
+        <span><%= success %></span>
+      </div>
+    <% } %>
+
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-xs">
+        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Total Produk</p>
+        <p class="text-2xl font-extrabold text-gray-900 mt-1"><%= stats.totalProducts %></p>
+      </div>
+      <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-xs">
+        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Total Stok Tersedia</p>
+        <p class="text-2xl font-extrabold text-blue-600 mt-1"><%= stats.totalStock %></p>
+      </div>
+      <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-xs">
+        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Stok Menipis (<=10)</p>
+        <p class="text-2xl font-extrabold text-amber-600 mt-1"><%= stats.lowStockCount %></p>
+      </div>
+      <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-xs">
+        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Stok Habis</p>
+        <p class="text-2xl font-extrabold text-rose-600 mt-1"><%= stats.outOfStockCount %></p>
+      </div>
+    </div>
+
+    <!-- Search & Filter Bar -->
+    <div class="bg-white border border-gray-200 rounded-2xl p-4 mb-6 shadow-xs flex flex-col sm:flex-row gap-3 items-center justify-between">
+      <form action="/admin/products" method="GET" class="flex-1 flex flex-col sm:flex-row gap-3 w-full">
+        <div class="relative flex-1">
+          <input
+            type="text"
+            name="search"
+            value="<%= search %>"
+            placeholder="Cari nama produk..."
+            class="w-full border border-gray-300 rounded-xl pl-9 pr-4 py-2 text-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+          />
+          <span class="absolute left-3 top-2.5 text-gray-400 text-sm">🔍</span>
+        </div>
+
+        <select
+          name="category"
+          class="border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500 bg-white"
+        >
+          <option value="">Semua Kategori</option>
+          <% categories.forEach(function(cat) { %>
+            <option value="<%= cat %>" <%= category === cat ? 'selected' : '' %>><%= cat %></option>
+          <% }) %>
+        </select>
+
+        <button
+          type="submit"
+          class="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors"
+        >
+          Filter
+        </button>
+
+        <% if (search || category) { %>
+          <a
+            href="/admin/products"
+            class="px-3 py-2 border border-gray-300 hover:bg-gray-50 text-gray-600 rounded-xl text-sm font-medium transition-colors text-center"
+          >
+            Reset
+          </a>
+        <% } %>
+      </form>
+    </div>
+
+    <!-- Product Data Table -->
+    <div class="bg-white border border-gray-200 rounded-2xl shadow-xs overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-sm">
+          <thead>
+            <tr class="bg-gray-50/80 border-b border-gray-200 text-gray-500 text-xs uppercase tracking-wider font-bold">
+              <th class="py-3.5 px-4 w-16 text-center">ID</th>
+              <th class="py-3.5 px-4">Nama Produk</th>
+              <th class="py-3.5 px-4">Kategori</th>
+              <th class="py-3.5 px-4">Harga</th>
+              <th class="py-3.5 px-4 text-center">Stok</th>
+              <th class="py-3.5 px-4">Deskripsi</th>
+              <th class="py-3.5 px-4 text-right w-36">Aksi</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200">
+            <% if (products.length === 0) { %>
+              <tr>
+                <td colspan="7" class="text-center py-10 text-gray-400">
+                  Tidak ada data produk yang ditemukan.
+                </td>
+              </tr>
+            <% } %>
+
+            <% products.forEach(function(p) { %>
+              <tr class="hover:bg-blue-50/30 transition-colors">
+                <td class="py-3.5 px-4 text-center font-bold text-gray-400">#<%= p.id %></td>
+                <td class="py-3.5 px-4 font-bold text-gray-900"><%= p.name %></td>
+                <td class="py-3.5 px-4">
+                  <span class="inline-block px-2 py-0.5 text-xs font-semibold rounded-md bg-blue-50 text-blue-700 border border-blue-200">
+                    <%= p.category || 'Umum' %>
+                  </span>
+                </td>
+                <td class="py-3.5 px-4 font-bold text-gray-800">
+                  Rp<%= p.price.toLocaleString('id-ID') %>
+                </td>
+                <td class="py-3.5 px-4 text-center">
+                  <% if (p.stock > 10) { %>
+                    <span class="inline-block px-2.5 py-0.5 text-xs font-bold rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
+                      <%= p.stock %>
+                    </span>
+                  <% } else if (p.stock > 0) { %>
+                    <span class="inline-block px-2.5 py-0.5 text-xs font-bold rounded-full bg-amber-100 text-amber-800 border border-amber-300">
+                      <%= p.stock %>
+                    </span>
+                  <% } else { %>
+                    <span class="inline-block px-2.5 py-0.5 text-xs font-bold rounded-full bg-rose-100 text-rose-800 border border-rose-300">
+                      Habis
+                    </span>
+                  <% } %>
+                </td>
+                <td class="py-3.5 px-4 text-xs text-gray-500 max-w-xs truncate" title="<%= p.description %>">
+                  <%= p.description || '-' %>
+                </td>
+                <td class="py-3.5 px-4 text-right space-x-1">
+                  <button
+                    type="button"
+                    onclick='openEditModal(<%- JSON.stringify(p) %>)'
+                    class="px-2.5 py-1.5 text-xs font-semibold bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-300 rounded-lg transition-colors"
+                  >
+                    ✏️ Edit
+                  </button>
+                  <button
+                    type="button"
+                    onclick="openDeleteModal(<%= p.id %>, '<%= p.name.replace(/'/g, "\\'") %>')"
+                    class="px-2.5 py-1.5 text-xs font-semibold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 rounded-lg transition-colors"
+                  >
+                    🗑️ Hapus
+                  </button>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Modal Tambah Produk (Create) -->
+  <div id="add-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs hidden items-center justify-center p-4">
+    <div class="bg-white border border-gray-200 rounded-3xl p-6 w-full max-w-md shadow-2xl">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-bold text-gray-900">✨ Tambah Produk Baru</h3>
+        <button onclick="closeModal('add-modal')" class="text-gray-400 hover:text-gray-600 text-xl font-bold">✕</button>
+      </div>
+
+      <form action="/admin/products" method="POST" class="space-y-3.5">
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">Nama Produk *</label>
+          <input type="text" name="name" required class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500" placeholder="contoh: Jaket Parka Waterproof" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Kategori</label>
+            <input type="text" name="category" list="category-suggestions" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500" placeholder="Pakaian / Jaket / Sepatu" />
+            <datalist id="category-suggestions">
+              <% categories.forEach(function(c) { %><option value="<%= c %>"><% }) %>
+            </datalist>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Harga (Rp) *</label>
+            <input type="number" name="price" min="0" required class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500" placeholder="150000" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">Stok Awal *</label>
+          <input type="number" name="stock" min="0" required class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500" placeholder="30" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">Deskripsi Produk</label>
+          <textarea name="description" rows="3" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500" placeholder="Jelaskan spesifikasi, bahan, keunggulan produk..."></textarea>
+        </div>
+
+        <div class="flex gap-2 pt-2">
+          <button type="button" onclick="closeModal('add-modal')" class="flex-1 px-4 py-2 border border-gray-300 text-gray-600 rounded-xl text-sm font-semibold hover:bg-gray-50">Batal</button>
+          <button type="submit" class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-sm">Simpan Produk</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Edit Produk (Update) -->
+  <div id="edit-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs hidden items-center justify-center p-4">
+    <div class="bg-white border border-gray-200 rounded-3xl p-6 w-full max-w-md shadow-2xl">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-bold text-gray-900">✏️ Edit Data Produk</h3>
+        <button onclick="closeModal('edit-modal')" class="text-gray-400 hover:text-gray-600 text-xl font-bold">✕</button>
+      </div>
+
+      <form id="edit-form" action="" method="POST" class="space-y-3.5">
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">Nama Produk *</label>
+          <input type="text" id="edit-name" name="name" required class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Kategori</label>
+            <input type="text" id="edit-category" name="category" list="category-suggestions" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Harga (Rp) *</label>
+            <input type="number" id="edit-price" name="price" min="0" required class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">Stok *</label>
+          <input type="number" id="edit-stock" name="stock" min="0" required class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">Deskripsi Produk</label>
+          <textarea id="edit-description" name="description" rows="3" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"></textarea>
+        </div>
+
+        <div class="flex gap-2 pt-2">
+          <button type="button" onclick="closeModal('edit-modal')" class="flex-1 px-4 py-2 border border-gray-300 text-gray-600 rounded-xl text-sm font-semibold hover:bg-gray-50">Batal</button>
+          <button type="submit" class="flex-1 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-sm font-bold shadow-sm">Perbarui Produk</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Hapus Produk (Delete Confirmation) -->
+  <div id="delete-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs hidden items-center justify-center p-4">
+    <div class="bg-white border border-gray-200 rounded-3xl p-6 w-full max-w-sm shadow-2xl text-center">
+      <div class="text-4xl mb-2">🗑️</div>
+      <h3 class="text-lg font-bold text-gray-900 mb-1">Hapus Produk?</h3>
+      <p class="text-xs text-gray-500 mb-4">Apakah Anda yakin ingin menghapus produk <span id="delete-product-name" class="font-bold text-gray-800"></span>? Tindakan ini tidak dapat dibatalkan.</p>
+
+      <form id="delete-form" action="" method="POST" class="flex gap-2">
+        <button type="button" onclick="closeModal('delete-modal')" class="flex-1 px-4 py-2 border border-gray-300 text-gray-600 rounded-xl text-sm font-semibold hover:bg-gray-50">Batal</button>
+        <button type="submit" class="flex-1 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-sm font-bold shadow-sm">Ya, Hapus</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function openAddModal() {
+      document.getElementById('add-modal').classList.remove('hidden');
+      document.getElementById('add-modal').classList.add('flex');
+    }
+
+    function openEditModal(product) {
+      document.getElementById('edit-form').action = '/admin/products/' + product.id + '/edit';
+      document.getElementById('edit-name').value = product.name;
+      document.getElementById('edit-category').value = product.category || 'Umum';
+      document.getElementById('edit-price').value = product.price;
+      document.getElementById('edit-stock').value = product.stock;
+      document.getElementById('edit-description').value = product.description || '';
+
+      document.getElementById('edit-modal').classList.remove('hidden');
+      document.getElementById('edit-modal').classList.add('flex');
+    }
+
+    function openDeleteModal(productId, productName) {
+      document.getElementById('delete-form').action = '/admin/products/' + productId + '/delete';
+      document.getElementById('delete-product-name').textContent = '"' + productName + '"';
+
+      document.getElementById('delete-modal').classList.remove('hidden');
+      document.getElementById('delete-modal').classList.add('flex');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+      document.getElementById(id).classList.remove('flex');
+    }
+  </script>
+</body>
+</html>

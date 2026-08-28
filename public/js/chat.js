@@ -105,17 +105,18 @@ chatForm.addEventListener("submit", async (e) => {
 
     // kalo AI berhasil bikin order, kasih notice kecil + link ke invoice
     if (orderCreated) {
+      const itemsCount = orderCreated.items ? orderCreated.items.length : 1;
       chatStore.setState({
         messages: [
           ...chatStore.getState().messages,
           {
             role: "bot",
-            text: `✅ Order #${orderCreated.id} berhasil dibuat! Cek detailnya di tab Invoice.`,
+            text: `✅ **Pesanan #${orderCreated.id} Berhasil Dibuat!**\nTotal: Rp${(orderCreated.totalAmount || 0).toLocaleString('id-ID')} (${itemsCount} macam produk).\n\n👉 [Buka Faktur Invoice](/invoices?orderId=${orderCreated.id})`,
           },
         ],
       });
-      // refresh stok yang ditampilin di katalog biar sinkron
-      setTimeout(() => window.location.reload(), 1500);
+      // refresh stok yang ditampilin di katalog
+      setTimeout(() => window.location.reload(), 2500);
     }
   } catch (err) {
     chatStore.setState({

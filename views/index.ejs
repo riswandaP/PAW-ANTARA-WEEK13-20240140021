@@ -3,63 +3,276 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title><%= storeName %></title>
+  <title><%= storeName %> - Smart Shop & AI Chat</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-50 min-h-screen">
-  <%- include('partials/nav', { storeName, active: 'katalog' }) %>
+<body class="bg-gray-50 min-h-screen flex flex-col justify-between">
+  
+  <div>
+    <%- include('partials/nav', { storeName, active: 'katalog', user }) %>
 
-  <main class="max-w-5xl mx-auto px-4 pb-10 grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-    <!-- KATALOG -->
-    <section class="lg:col-span-2">
-      <% if (error) { %>
-        <div class="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3 mb-4">
-          <%= error %>
+    <!-- Hero Header Banner -->
+    <div class="bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-800 text-white py-10 px-4 sm:px-6 lg:px-8 mb-8 shadow-sm">
+      <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+        <div>
+          <span class="inline-block bg-white/20 backdrop-blur-xs text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-2">
+            🚀 CPMK52: Bot Messaging & AI Function Calling
+          </span>
+          <h2 class="text-2xl sm:text-3xl font-black tracking-tight leading-tight">
+            Belanja Multi-Item Lebih Cepat & Cerdas
+          </h2>
+          <p class="text-sm text-blue-100 mt-1 max-w-xl">
+            Pesan langsung lewat Keranjang Belanja Web atau cukup ngobrol dengan AI Assistant untuk beli banyak barang sekaligus!
+          </p>
         </div>
-      <% } %>
 
-      <h2 class="font-semibold text-gray-700 mb-3">Produk Kami</h2>
-      <div id="product-list" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <% products.forEach(function(product) { %>
-          <%- include('partials/product-card', { product }) %>
-        <% }) %>
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            onclick="toggleCartModal()"
+            class="bg-white hover:bg-blue-50 text-blue-800 font-bold text-xs px-4 py-2.5 rounded-xl shadow-md transition-transform active:scale-95 flex items-center gap-2"
+          >
+            <span>🧺 Buka Keranjang</span>
+            <span id="hero-cart-count" class="bg-blue-600 text-white px-2 py-0.5 rounded-full text-[10px]">0</span>
+          </button>
+        </div>
       </div>
-      <p class="text-xs text-gray-400 mt-3">
-        Bisa pesan langsung lewat form di atas, ATAU chat sama asisten AI di samping →
-        bandingin produk, minta rekomendasi, terus bilang aja mau beli.
-      </p>
-    </section>
+    </div>
 
-    <!-- CHAT WIDGET -->
-    <section class="bg-white border border-gray-200 rounded-xl flex flex-col h-[600px] sticky top-6">
-      <div class="border-b border-gray-200 px-4 py-3">
-        <h2 class="font-semibold text-gray-700">💬 Tanya / Pesan lewat Chat</h2>
-        <p class="text-xs text-gray-400">Coba: "bagusan produk A apa B?" atau "aku beli produk A 3 biji atas nama Budi"</p>
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+      <!-- LEFT: PRODUCT CATALOG SECTION (2 Columns on Large Screens) -->
+      <section class="lg:col-span-2 space-y-6">
+        
+        <!-- Search & Category Filters -->
+        <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-xs">
+          
+          <form action="/" method="GET" class="flex flex-col sm:flex-row gap-2 mb-3">
+            <div class="relative flex-1">
+              <input
+                type="text"
+                name="search"
+                value="<%= search %>"
+                placeholder="Cari kaos, jaket, sepatu, celana..."
+                class="w-full border border-gray-300 rounded-xl pl-9 pr-4 py-2 text-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+              />
+              <span class="absolute left-3 top-2.5 text-gray-400 text-sm">🔍</span>
+            </div>
+            <% if (selectedCategory) { %>
+              <input type="hidden" name="category" value="<%= selectedCategory %>" />
+            <% } %>
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-xl text-xs shadow-xs transition-colors">
+              Cari
+            </button>
+            <% if (search || selectedCategory) { %>
+              <a href="/" class="px-3 py-2 border border-gray-300 text-gray-600 rounded-xl text-xs font-semibold hover:bg-gray-50 text-center">
+                Reset
+              </a>
+            <% } %>
+          </form>
+
+          <!-- Category Pills -->
+          <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+            <a
+              href="/<%= search ? '?search=' + search : '' %>"
+              class="px-3 py-1.5 rounded-lg font-bold shrink-0 transition-colors <%= !selectedCategory ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' %>"
+            >Semua</a>
+            <% categories.forEach(function(cat) { %>
+              <a
+                href="/?category=<%= encodeURIComponent(cat) %><%= search ? '&search=' + search : '' %>"
+                class="px-3 py-1.5 rounded-lg font-bold shrink-0 transition-colors <%= selectedCategory === cat ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' %>"
+              ><%= cat %></a>
+            <% }) %>
+          </div>
+
+        </div>
+
+        <!-- Alert Error if any -->
+        <% if (error) { %>
+          <div class="bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl px-4 py-3 flex items-center gap-2">
+            <span>⚠️</span>
+            <span><%= error %></span>
+          </div>
+        <% } %>
+
+        <!-- Product Grid -->
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-extrabold text-gray-900 text-lg">
+              Katalog Produk <span class="text-sm font-medium text-gray-400">(<%= products.length %> item)</span>
+            </h3>
+            <span class="text-xs text-gray-500 font-medium">Bisa pesan banyak sekaligus 🛒</span>
+          </div>
+
+          <% if (products.length === 0) { %>
+            <div class="bg-white border border-gray-200 rounded-3xl p-10 text-center text-gray-400">
+              <p class="text-3xl mb-2">🔍</p>
+              <p class="text-sm font-semibold">Produk tidak ditemukan</p>
+              <p class="text-xs mt-1">Coba kata kunci pencarian atau kategori lain.</p>
+            </div>
+          <% } %>
+
+          <div id="product-list" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <% products.forEach(function(product) { %>
+              <%- include('partials/product-card', { product }) %>
+            <% }) %>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- RIGHT: AI CHAT ASSISTANT WIDGET -->
+      <section class="bg-white border border-gray-200 rounded-3xl shadow-xs flex flex-col h-[680px] sticky top-20 overflow-hidden">
+        
+        <!-- Chat Header -->
+        <div class="bg-gradient-to-r from-gray-900 to-blue-950 text-white p-4 flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center text-xl">
+              🤖
+            </div>
+            <div>
+              <h3 class="font-bold text-sm leading-snug">Asisten AI Toko</h3>
+              <p class="text-[11px] text-blue-200">Tanya produk & pesan multi-item</p>
+            </div>
+          </div>
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" title="Online"></span>
+        </div>
+
+        <!-- Chat Quick Suggestion Pills -->
+        <div class="bg-blue-50/70 border-b border-blue-100 p-2.5 overflow-x-auto flex gap-1.5 text-[11px] shrink-0">
+          <button
+            type="button"
+            onclick="sendQuickPrompt('Bagusan Kaos Polos Combed 30s apa Heavyweight 24s?')"
+            class="px-2.5 py-1 bg-white border border-blue-200 hover:border-blue-400 text-blue-800 rounded-lg shrink-0 font-medium transition-colors"
+          >
+            💡 Bandingkan Kaos
+          </button>
+          <button
+            type="button"
+            onclick="sendQuickPrompt('Saya mau beli Kaos Polos Cotton Combed 30s 2 biji dan Celana Chino Slim Fit 1 biji atas nama Wanda')"
+            class="px-2.5 py-1 bg-white border border-blue-200 hover:border-blue-400 text-blue-800 rounded-lg shrink-0 font-bold text-blue-900 transition-colors"
+          >
+            ⚡ Pesan 2 Kaos & 1 Chino
+          </button>
+          <button
+            type="button"
+            onclick="sendQuickPrompt('Rekomendasikan sepatu kasual yang nyaman dan harganya?')"
+            class="px-2.5 py-1 bg-white border border-blue-200 hover:border-blue-400 text-blue-800 rounded-lg shrink-0 font-medium transition-colors"
+          >
+            👟 Rekomendasi Sepatu
+          </button>
+        </div>
+
+        <!-- Chat Messages History Container -->
+        <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-3.5 bg-gray-50/40"></div>
+
+        <!-- Chat Input Form -->
+        <form id="chat-form" class="border-t border-gray-200 p-3 bg-white flex gap-2">
+          <input
+            id="chat-input"
+            type="text"
+            placeholder="Tanya atau pesan produk (contoh: 'beli Kaos A 2 dan Celana 1 atas nama Budi')..."
+            class="flex-1 border border-gray-300 rounded-xl px-3.5 py-2.5 text-xs focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+            autocomplete="off"
+          />
+          <button
+            id="chat-submit"
+            type="submit"
+            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-xs transition-colors"
+          >
+            Kirim
+          </button>
+        </form>
+
+      </section>
+
+    </main>
+  </div>
+
+  <!-- MODAL KERANJANG BELANJA (CART DRAWER / CHECKOUT) -->
+  <div id="cart-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs hidden items-center justify-center p-4">
+    <div class="bg-white border border-gray-200 rounded-3xl p-6 w-full max-w-lg shadow-2xl flex flex-col max-h-[90vh]">
+      
+      <div class="flex items-center justify-between pb-3 border-b border-gray-200 mb-4">
+        <div class="flex items-center gap-2">
+          <span class="text-2xl">🧺</span>
+          <h3 class="text-lg font-black text-gray-900">Keranjang Belanja</h3>
+          <span id="cart-total-count" class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">0 item</span>
+        </div>
+        <button onclick="toggleCartModal()" class="text-gray-400 hover:text-gray-600 text-xl font-bold">✕</button>
       </div>
 
-      <div id="chat-messages" class="flex-1 overflow-y-auto px-4 py-3 space-y-3"></div>
+      <!-- Items List -->
+      <div id="cart-items-list" class="flex-1 overflow-y-auto space-y-2.5 pr-1 max-h-80 mb-4"></div>
 
-      <form id="chat-form" class="border-t border-gray-200 p-3 flex gap-2">
-        <input
-          id="chat-input"
-          type="text"
-          placeholder="Tanya atau pesan produk..."
-          class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-          autocomplete="off"
-        />
-        <button
-          id="chat-submit"
-          type="submit"
-          class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold"
-        >Kirim</button>
+      <!-- Checkout Form -->
+      <form id="cart-checkout-form" onsubmit="handleCartCheckout(event)" class="border-t border-gray-200 pt-4 space-y-3">
+        
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">Nama Pembeli *</label>
+          <input
+            type="text"
+            id="cart-buyer-name"
+            value="<%= user ? user.username : '' %>"
+            required
+            placeholder="Masukkan nama lengkap Anda..."
+            class="w-full border border-gray-300 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-blue-500 font-medium"
+          />
+        </div>
+
+        <div class="bg-blue-50/80 rounded-2xl p-3.5 flex items-baseline justify-between border border-blue-200/60">
+          <div>
+            <p class="text-xs text-gray-500 font-medium">Total Pembayaran</p>
+            <p class="text-[11px] text-gray-400">Seluruh item dalam 1 transaksi</p>
+          </div>
+          <span id="cart-total-amount" class="text-xl font-black text-blue-700">Rp0</span>
+        </div>
+
+        <div class="flex gap-2 pt-1">
+          <button
+            type="button"
+            onclick="clearCart()"
+            class="px-3.5 py-2.5 border border-gray-300 hover:bg-gray-50 text-gray-600 rounded-xl text-xs font-semibold transition-colors"
+          >
+            Kosongkan
+          </button>
+          <button
+            type="submit"
+            id="cart-checkout-btn"
+            class="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-bold py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all"
+          >
+            Bayar & Pesan Sekarang 🚀
+          </button>
+        </div>
+
       </form>
-    </section>
 
-  </main>
+    </div>
+  </div>
 
+  <footer class="bg-white border-t border-gray-200 py-6 text-center text-xs text-gray-500">
+    <div class="max-w-7xl mx-auto px-4">
+      <p class="font-bold text-gray-700"><%= storeName %> &bull; PAW Antara Pertemuan 13 (NIM: 20240140021)</p>
+      <p class="text-gray-400 mt-1">Bot Messaging &bull; Long Polling &bull; Telegram Bot API &bull; DRY Architecture</p>
+    </div>
+  </footer>
+
+  <!-- Client-side Scripts -->
   <script src="/js/store.js"></script>
   <script src="/js/utils/formatChatText.js"></script>
   <script src="/js/chat.js"></script>
+  <script src="/js/cart.js"></script>
+
+  <script>
+    function sendQuickPrompt(text) {
+      const input = document.getElementById('chat-input');
+      const form = document.getElementById('chat-form');
+      if (input && form) {
+        input.value = text;
+        form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+      }
+    }
+  </script>
 </body>
 </html>
