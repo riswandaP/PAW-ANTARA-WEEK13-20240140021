@@ -1,0 +1,24 @@
+{
+  "name": "telegram-shop-bot",
+  "version": "1.0.0",
+  "description": "Demo materi CPMK52: user order lewat WEB, admin dapet notifikasi + cek stok via Telegram Bot (long polling). Reuse logic DRY antara web & bot.",
+  "main": "app.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "seed": "node seeders/seed.js"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.21.0",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "node-telegram-bot-api": "^0.66.0",
+    "pg": "^8.12.0",
+    "sequelize": "^6.37.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  }
+}

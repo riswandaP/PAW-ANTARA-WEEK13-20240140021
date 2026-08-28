@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Order Berhasil</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center px-4">
+  <div class="bg-white border border-gray-200 rounded-xl p-6 w-full max-w-sm text-center shadow-sm">
+    <div class="text-4xl mb-3">✅</div>
+    <h1 class="text-lg font-bold text-gray-800 mb-1">Order Berhasil!</h1>
+    <p class="text-sm text-gray-500 mb-4">Admin <%= storeName %> udah dapet notifikasi order kamu</p>
+
+    <div class="bg-gray-50 border border-gray-200 rounded-lg p-3 text-left text-sm text-gray-600 mb-4">
+      <p><strong>Order ID:</strong> #<%= order.id %></p>
+      <p><strong>Produk:</strong> <%= product.name %></p>
+      <p><strong>Jumlah:</strong> <%= order.quantity %></p>
+      <p><strong>Total:</strong> Rp<%= (product.price * order.quantity).toLocaleString('id-ID') %></p>
+      <p><strong>Atas nama:</strong> <%= order.buyerName %></p>
+    </div>
+
+    <p class="text-xs text-gray-400 mb-4">Admin bakal segera menghubungi kamu buat konfirmasi pembayaran & pengiriman.</p>
+
+    <a href="/" class="block w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2 rounded-lg">
+      Balik ke Katalog
+    </a>
+  </div>
+</body>
+</html>

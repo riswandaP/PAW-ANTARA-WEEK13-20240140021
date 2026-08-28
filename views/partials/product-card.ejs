@@ -1,0 +1,37 @@
+<%
+const isAvailable = product.stock > 0;
+const badgeLabel = isAvailable ? `Stok: ${product.stock}` : 'Habis';
+const badgeColor = isAvailable ? 'green' : 'red';
+%>
+<div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+  <div class="flex items-start justify-between mb-2">
+    <h3 class="font-semibold text-gray-800"><%= product.name %></h3>
+    <%- include('badge', { label: badgeLabel, color: badgeColor }) %>
+  </div>
+  <p class="text-sm text-gray-500 mb-3"><%= product.description || 'Tanpa deskripsi' %></p>
+  <p class="text-blue-600 font-bold mb-3">Rp<%= product.price.toLocaleString('id-ID') %></p>
+
+  <% if (isAvailable) { %>
+    <div class="flex gap-2">
+      <input
+        type="number"
+        id="qty-<%= product.id %>"
+        value="1"
+        min="1"
+        max="<%= product.stock %>"
+        class="w-20 border border-gray-300 rounded-lg px-3 py-2 text-sm"
+      />
+      <button
+        type="button"
+        onclick="addToCart(<%= product.id %>, '<%= product.name.replace(/'/g, "\\'") %>', <%= product.price %>, <%= product.stock %>)"
+        class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg py-2"
+      >
+        + Keranjang
+      </button>
+    </div>
+  <% } else { %>
+    <button disabled class="w-full bg-gray-200 text-gray-400 text-sm font-semibold py-2 rounded-lg cursor-not-allowed">
+      Stok Habis
+    </button>
+  <% } %>
+</div>
